@@ -13,7 +13,7 @@ namespace NumberGuessGameApi.Data
         {
         }
 
-        // Definimos las tablas que se crearán en la Base de Datos
+        // Definimos las tablas que se crean en la Base de Datos
         public DbSet<Player> Players { get; set; } = null!;
         public DbSet<Game> Games { get; set; } = null!;
         public DbSet<Attempt> Attempts { get; set; } = null!;
@@ -22,16 +22,16 @@ namespace NumberGuessGameApi.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configuración adicional por si queremos asegurar reglas de negocio
+            // Configuracion adicional por si queremos asegurar reglas de negocio
 
-            // Un jugador tiene muchos juegos, con clave foránea PlayerId
+            // Un jugador tiene muchos juegos, con clave foranea PlayerId
             modelBuilder.Entity<Game>()
                 .HasOne(g => g.Player)
                 .WithMany(p => p.Games)
                 .HasForeignKey(g => g.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade); // Si se borra un jugador, se borran sus partidas
 
-            // Un juego tiene muchos intentos, con clave foránea GameId
+            // Un juego tiene muchos intentos, con clave foranea GameId
             modelBuilder.Entity<Attempt>()
                 .HasOne(a => a.Game)
                 .WithMany(g => g.Attempts)

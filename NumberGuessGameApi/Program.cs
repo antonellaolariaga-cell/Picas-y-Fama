@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using NumberGuessGameApi.Data;
+using NumberGuessGameApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Registrar el contexto de la base de datos con SQL Server
 builder.Services.AddDbContext<GameDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IGameService, GameService>();
 
 // Add services to the container.
 
