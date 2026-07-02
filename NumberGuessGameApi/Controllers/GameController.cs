@@ -1,29 +1,36 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NumberGuessGameApi.Data;
 using NumberGuessGameApi.DataTransferObjects;
 using NumberGuessGameApi.Models;
+using NumberGuessGameApi.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
 
 namespace NumberGuessGameApi.Controllers
 {
     [ApiController]
-    [Route("api/game/v1")] // Ruta base unificada
+    [Route("api/game/v1")]
     public class GameController : ControllerBase
     {
         private readonly GameDbContext _context;
         private readonly ILogger<GameController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IGameService _gameService;
 
-        public GameController(GameDbContext context, ILogger<GameController> logger, IConfiguration configuration)
+        public GameController(
+            GameDbContext context,
+            ILogger<GameController> logger,
+            IConfiguration configuration,
+            IGameService gameService)
         {
             _context = context;
             _logger = logger;
             _configuration = configuration;
+            _gameService = gameService;
         }
 
         [HttpPost("register")]
@@ -106,7 +113,116 @@ namespace NumberGuessGameApi.Controllers
             }
         }
 
-        // --- Helper privado para generar el JWT ---
+        [Authorize]
+        [HttpPost("start")]
+        public async Task<IActionResult> StartGame()
+        {
+            var playerId = GetPlayerIdFromToken();
+            if (playerId is null)
+            {
+                return Unauthorized(new { message = "Token inválido o sin información del jugador." });
+            }
+
+            try
+            {
+                var game = await _gameService.StartGameAsync(playerId.Value);
+
+                _logger.LogInformation("Juego {GameId} iniciado para jugador {PlayerId}", game.GameId, playerId);
+
+                var response = new StartGameResponse
+                {
+                    GameId = game.GameId,
+                    PlayerId = game.PlayerId,
+                    CreateAt = game.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")
+                };
+
+                return Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Ya tiene un juego activo
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al iniciar juego para jugador {PlayerId}", playerId);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Ocurrió un error interno al iniciar el juego." });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("guess")]
+        public async Task<IActionResult> Guess([FromBody] GuessNumberRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var playerId = GetPlayerIdFromToken();
+            if (playerId is null)
+            {
+                return Unauthorized(new { message = "Token inválido o sin información del jugador." });
+            }
+
+            var attemptedNumberStr = request.AttemptedNumber.ToString("D4");
+
+            if (!HasFourUniqueDigits(attemptedNumberStr))
+            {
+                return BadRequest(new { message = "El número debe tener 4 dígitos sin repetir." });
+            }
+
+            try
+            {
+                var gameExists = await _context.Games.AnyAsync(g => g.GameId == request.GameId);
+                if (!gameExists)
+                {
+                    return NotFound(new { message = $"El juego {request.GameId} no existe." });
+                }
+
+                var attempt = await _gameService.ProcessGuessAsync(request.GameId, attemptedNumberStr);
+
+                var response = new GuessNumberResponse
+                {
+                    GameId = request.GameId,
+                    AttemptedNumber = attemptedNumberStr,
+                    Message = attempt.ResultMessage
+                };
+
+                return Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Juego inexistente o ya finalizado
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al procesar intento para juego {GameId}", request.GameId);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Ocurrió un error interno al procesar el intento." });
+            }
+        }
+
+        // --- Helpers privados ---
+
+        private Guid? GetPlayerIdFromToken()
+        {
+            var claim = User.FindFirst("playerId")?.Value;
+            return Guid.TryParse(claim, out var playerId) ? playerId : null;
+        }
+
+        private static bool HasFourUniqueDigits(string number)
+        {
+            if (number.Length != 4 || !number.All(char.IsDigit))
+            {
+                return false;
+            }
+
+            return number.Distinct().Count() == 4;
+        }
+
         private string GenerateJwtToken(Player player)
         {
             var claims = new[]
