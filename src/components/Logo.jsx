@@ -15,7 +15,7 @@ export default function Logo({ size = 'md' }) {
       </div>
       <div className="leading-tight">
         <p className="font-bold tracking-tight text-ink-100">Picas y Famas</p>
-        <p className="text-xs font-medium text-ink-400">Universidad Nacional de Colombia</p>
+        <p className="text-xs font-medium text-ink-400">Universidad Nacional de Córdoba</p>
       </div>
     </div>
   )
