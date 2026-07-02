@@ -10,6 +10,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+
 namespace NumberGuessGameApi.Controllers
 {
     [ApiController]
@@ -203,7 +204,10 @@ namespace NumberGuessGameApi.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError,
                     new { message = "Ocurrió un error interno al procesar el intento." });
             }
+
+
         }
+        
 
         // --- Helpers privados ---
 

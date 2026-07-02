@@ -4,6 +4,7 @@ using System.Reflection.Emit;
 using Microsoft.EntityFrameworkCore;
 
 
+
 namespace NumberGuessGameApi.Data
 {
     public class GameDbContext :DbContext
