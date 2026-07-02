@@ -1,0 +1,37 @@
+@baseUrl = https://localhost:7122
+@token = PEGA_AQUI_EL_TOKEN_DESPUES_DE_HACER_LOGIN_O_REGISTER
+
+### 1. Register 
+POST {{baseUrl}}/api/game/v1/register
+Content-Type: application/json
+
+{
+  "firstname": "TU_NOMBRE",
+  "lastname": "TU_APELLIDO",
+  "age": 0,
+  "email": "TU_EMAIL@dominio.com",
+  "password": "TU_CONTRASEÑA"
+}
+
+### 2. Login 
+POST {{baseUrl}}/api/game/v1/login
+Content-Type: application/json
+
+{
+  "email": "TU_EMAIL@dominio.com",
+  "password": "TU_CONTRASEÑA"
+}
+
+### 3. Start game
+POST {{baseUrl}}/api/game/v1/start
+Authorization: Bearer {{token}}
+
+### 4. Guess 
+POST {{baseUrl}}/api/game/v1/guess
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "gameid": 0,
+  "attemptedNumber": 1234
+}
