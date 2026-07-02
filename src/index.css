@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-ink-950 text-ink-100 font-sans antialiased;
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(37, 99, 235, 0.08), transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(37, 99, 235, 0.06), transparent 40%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  input,
+  button {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-electric-500 px-6 py-3 font-semibold text-white
+      transition-all duration-200 hover:bg-electric-400 hover:shadow-[0_0_30px_rgba(37,99,235,0.45)]
+      active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-ink-700 disabled:text-ink-400
+      disabled:shadow-none disabled:hover:scale-100;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-ink-700 bg-ink-850 px-5 py-2.5
+      font-medium text-ink-200 transition-all duration-200 hover:border-ink-600 hover:bg-ink-800
+      active:scale-[0.98];
+  }
+  .input-field {
+    @apply w-full rounded-xl border border-ink-700 bg-ink-900 px-4 py-3 text-ink-100 placeholder-ink-400
+      transition-all duration-200 focus:border-electric-500 focus:ring-2 focus:ring-electric-500/30;
+  }
+  .card {
+    @apply rounded-2xl border border-ink-700 bg-ink-900/80 backdrop-blur-sm shadow-[0_8px_40px_rgba(0,0,0,0.4)];
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink-300;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #252836;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #323648;
+}
