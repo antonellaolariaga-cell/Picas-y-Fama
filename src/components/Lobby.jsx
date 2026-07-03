@@ -11,7 +11,7 @@ export default function Lobby({ auth, onStart, onLogout }) {
     setError('')
     setLoading(true)
     try {
-      const res = await startGame(auth.playerId)
+        const res = await startGame(auth.playerId, auth.token)
       if (!res || res.gameid === undefined || res.gameid === null) {
         throw new Error('La API no devolvió un gameid válido.')
       }

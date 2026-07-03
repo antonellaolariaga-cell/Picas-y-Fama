@@ -47,23 +47,39 @@ export function login({ email, password }) {
   })
 }
 
-export function startGame(playerId) {
-  return request(`/api/game/v1/start?playerId=${encodeURIComponent(playerId)}`, {
-    method: 'POST',
+export function sendGuess({ gameid, attemptedNumber, token }) {
+    return request('/api/game/v1/guess', {
+        method: 'POST',
+        body: { gameid, attemptedNumber },
+        token,
+    })
+}
+
+export function startGame(playerId, token) {
+  return request(/api/game/v1/start?playerId=${encodeURIComponent(playerId)}, {
+      method: 'POST',
+
+      token,
+
   })
 }
 
-export function sendGuess({ gameid, attemptedNumber, token }) {
-  return request('/api/game/v1/guess', {
-    method: 'POST',
-    body: { gameid, attemptedNumber },
-    token,
-  })
-}
 
 export function extractPlayerId(tokenResponse) {
   if (!tokenResponse || !tokenResponse.token) return null
-  const token = tokenResponse.token
-  const match = token.match(/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})/)
-  return match ? match[1] : token
+    try {
+        const payload = tokenResponse.token.split('.')[1]
+        const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+        console.log('Claims del token:', decoded) // dejalo un momento para ver los nombres reales
+        return (
+            decoded.playerId ||
+            decoded.PlayerId ||
+            decoded.sub ||
+            decoded.nameid ||
+            decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+            null
+        )
+    } catch {
+        return null
+    }
 }

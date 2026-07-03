@@ -7,15 +7,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuración de la Base de Datos
 builder.Services.AddDbContext<GameDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddScoped<IGameService, GameService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(); // <-- sin el bloque de seguridad, simple y sin dependencias raras
+builder.Services.AddSwaggerGen();
 
-
+// 1. Configuración de Autenticación JWT (¡Queda solo este bloque!)
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -35,8 +37,22 @@ builder.Services.AddAuthentication(options =>
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
 });
-builder.Services.AddAuthentication();
+
+// 2. Configuración de Autorización
 builder.Services.AddAuthorization();
+
+// 3. Configuración de CORS limpia
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVercel",
+        policy =>
+        {
+            policy.WithOrigins("https://picas-y-famas-jet.vercel.app")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        });
+});
 
 var app = builder.Build();
 
@@ -48,10 +64,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// El orden de middlewares que corregimos antes y quedó perfecto
+app.UseCors("AllowVercel");
+
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseAuthentication(); // Lee el Token Bearer de Bruno
-app.UseAuthorization();  // Otorga o deniega el acceso a los métodos con [Authorize]
 
 app.MapControllers();
 
